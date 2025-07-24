@@ -1,0 +1,21 @@
+services:
+  redis:
+    image: redis:7.2
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--loglevel", "verbose"]
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: payments
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    command: ["postgres", "-c", "log_statement=all"]
+
+volumes:
+  postgres_data:
