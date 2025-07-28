@@ -13,12 +13,12 @@ gem 'rack'
 gem 'rack-test'         # For testing Cuba APIs
 gem 'rackup'            # Rack server for Cuba
 gem 'redis'             # Redis client
-gem 'rerun'             # For reloading code in development
 gem 'rspec'             # Testing framework
 gem 'securerandom'      # For generating UUIDs
 gem 'sequel'            # ORM for database
 gem 'sidekiq'           # Background job processing
 
 group :development do
+  gem 'rerun' # For reloading code in development
   gem 'rubocop'
 end

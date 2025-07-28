@@ -4,8 +4,16 @@ To install
 
 To execute just the web app
 
-```rerun rackup```
+```rerun rackup -p 3000```
 
 To execute using the Procfile
 
 ```foreman start```
+
+
+# TODO
+- Add nginx reverse proxy.
+- Add an authentication middleware.
+- Add environment variables to support different environments to the entire setup.
+- Understand how to deploy the whole stack and how to scale it using AWS.
+- Add hot reload to the entire development environment (if possible).

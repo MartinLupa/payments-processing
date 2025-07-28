@@ -6,15 +6,18 @@ require 'sidekiq/web'
 require './models/payment'
 require './workers/payment_processor_worker'
 
-# Cuba.use Rack::Auth::Basic do |_, password|
-#   password == 'secret' # Replace with JWT or API key in production
-# end
+Cuba.use Rack::Auth::Basic do |_, password|
+  password == 'secret' # Replace with JWT or API key in production
+end
 
 Cuba.define do
   redis = Redis.new
 
-  on 'sidekiq' do
-    run Sidekiq::Web
+  on 'health' do
+    on get do
+      res.headers['Content-Type'] = 'application/json'
+      res.write({ status: 'ok', timestamp: Time.now.utc }.to_json)
+    end
   end
 
   on 'payments' do
@@ -26,9 +29,10 @@ Cuba.define do
 
       # Generate unique transaction ID
       transaction_id = SecureRandom.uuid
+
+      # Create payment record
       payment = Payment.create(order_id: order_id, amount: amount, status: 'pending', card_token: card_token,
                                transaction_id: transaction_id)
-
       # Enqueue payment processing
       PaymentProcessorWorker.perform_async(payment.id, card_token)
 

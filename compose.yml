@@ -1,4 +1,12 @@
 services:
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - 80:80
+
   redis:
     image: redis:7.2
     ports:
