@@ -6,16 +6,17 @@ require 'sidekiq/web'
 require './models/payment'
 require './workers/payment_processor_worker'
 
-Cuba.use Rack::Auth::Basic do |_, password|
-  password == 'secret' # Replace with JWT or API key in production
-end
+# Cuba.use Rack::Auth::Basic do |username, password|
+#   username == 'user1' &&
+#     password == 'secret' # Replace with JWT or API key in production
+# end
 
 Cuba.define do
   redis = Redis.new
 
   on 'health' do
     on get do
-      res.headers['Content-Type'] = 'application/json'
+      res.headers['content-type'] = 'application/json'
       res.write({ status: 'ok', timestamp: Time.now.utc }.to_json)
     end
   end

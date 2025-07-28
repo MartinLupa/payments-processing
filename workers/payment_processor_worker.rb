@@ -17,19 +17,20 @@ class PaymentProcessorWorker
     logger = Logger.new(STDOUT)
     payment = Payment.first(id: payment_id)
 
-    logger.info("Processing payment ##{payment_id} with card token #{card_token}")
+    logger.info("Processing payment ##{payment_id}")
 
     # Simulate payment gateway call
-    response = { success: true } # Simulate a successful response from the payment gateway
+    response = { success: false } # Simulate a successful response from the payment gateway
 
     DB.transaction do
       if response[:success]
         payment.update(status: 'completed')
+        logger.info("Payment ##{payment_id} completed successfully")
         # EmailWorker.perform_async(payment.order_id, 'Payment successful')
       else
         payment.update(status: 'failed')
-        logger.error("Payment failed for #{payment_id}: #{response.body}")
-        raise 'Payment gateway error' unless retries_exhausted?
+        logger.error("Payment failed for #{payment_id}")
+        # EmailWorker.perform_async(payment.order_id, 'Payment failed')
       end
     end
   end
