@@ -1,7 +1,5 @@
 require 'sequel'
 
-DB = Sequel.connect('postgres://user:password@localhost:5432/payments')
-
 unless DB.table_exists?(:payments)
   DB.create_table? :payments do
     primary_key :id

@@ -1,2 +1,2 @@
-web: bundle exec rackup -p 9293
+web: bundle exec rackup -p 9292
 worker: bundle exec sidekiq -C ./config/sidekiq.yml -r ./workers/payment_processor_worker.rb

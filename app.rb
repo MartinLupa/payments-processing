@@ -3,6 +3,7 @@ require 'json'
 require 'securerandom'
 require 'redis'
 require 'sidekiq/web'
+require './config/database'
 require './models/payment'
 require './workers/payment_processor_worker'
 

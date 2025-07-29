@@ -1,6 +1,7 @@
 require 'sidekiq'
 require 'faraday'
 require 'logger'
+require './config/database'
 require './models/payment'
 
 ##

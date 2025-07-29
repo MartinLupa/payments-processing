@@ -19,6 +19,7 @@ gem 'sequel'            # ORM for database
 gem 'sidekiq'           # Background job processing
 
 group :development do
+  gem 'dotenv' # For managing environment variables
   gem 'rerun' # For reloading code in development
   gem 'rubocop'
 end

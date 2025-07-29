@@ -100,7 +100,7 @@ export default function CheckoutPage() {
           {/* Left Column - Customer Info & Payment */}
           <div className="space-y-6">
             {/* Customer Information */}
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <CardTitle>Customer Information</CardTitle>
                 <CardDescription>We'll use this information for delivery</CardDescription>
@@ -176,7 +176,7 @@ export default function CheckoutPage() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
 
             {/* Payment Method */}
             <Card>
