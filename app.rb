@@ -7,8 +7,13 @@ require './config/database'
 require './models/payment'
 require './workers/payment_processor_worker'
 
+##
+# Uncomment the following lines to enable basic authentication
+# For the time being, authentication is happening at the API Gateway level.
+# Replace with JWT or API key in production
+#
 # Cuba.use Rack::Auth::Basic do |username, password|
-#   username == 'user1' &&
+#   username == 'allowed-user' &&
 #     password == 'secret' # Replace with JWT or API key in production
 # end
 
@@ -23,25 +28,6 @@ Cuba.define do
   end
 
   on 'payments' do
-    on post do
-      params = JSON.parse(req.body.read)
-      order_id = params['order_id']
-      amount = params['amount']
-      card_token = params['card_token']
-
-      # Generate unique transaction ID
-      transaction_id = SecureRandom.uuid
-
-      # Create payment record
-      payment = Payment.create(order_id: order_id, amount: amount, status: 'pending', card_token: card_token,
-                               transaction_id: transaction_id)
-      # Enqueue payment processing
-      PaymentProcessorWorker.perform_async(payment.id, card_token)
-
-      res.status = 202
-      res.write({ transaction_id: transaction_id, status: 'pending' }.to_json)
-    end
-
     on root, get do
       payments = Payment.all.map do |payment|
         {
@@ -58,13 +44,34 @@ Cuba.define do
       res.json({ message: payments.empty? ? 'No payments found' : payments })
     end
 
+    on post do
+      params = JSON.parse(req.body.read)
+      order_id = params['order_id']
+      amount = params['amount']
+      card_token = params['card_token']
+
+      # Generate unique transaction ID
+      transaction_id = SecureRandom.uuid
+
+      # Create payment record
+      payment = Payment.create(order_id: order_id, amount: amount, status: 'pending', card_token: card_token,
+                               transaction_id: transaction_id)
+      # Enqueue payment processing
+      PaymentProcessorWorker.perform_async(payment.id, card_token)
+
+      res.status = 202
+      res.write({ message: 'Payment initiated', transaction_id: transaction_id, status: 'pending' }.to_json)
+    end
+
     on ':id' do |id|
       on get do
         # Check Redis cache
         cached = redis.get("payment:#{id}")
+
         if cached
           res.headers['etag'] = Digest::SHA1.hexdigest(cached)
-          res.json(message: 'cached', data: cached)
+          res.headers['cached'] = 'true'
+          res.json(cached)
           next
         end
 
@@ -75,12 +82,29 @@ Cuba.define do
           next
         end
 
-        # Cache response for 1 hour
         response = payment.to_json
+
         redis.setex("payment:#{id}", 3600, response)
         res.headers['etag'] = Digest::SHA1.hexdigest(response)
-        res.headers['cache-control'] = 'max-age=3600'
+        # res.headers['cache-control'] = 'max-age=3600'
         res.json(response)
+      end
+
+      on patch do
+        params = JSON.parse(req.body.read)
+        status = params['status']
+        puts "Updating payment status for #{id} to #{status}"
+
+        payment = Payment.where(transaction_id: id).first
+        if payment
+          updated_payment = payment.update(status: status)
+          redis.setex("payment:#{id}", 3600, updated_payment.to_json) # Cache the updated payment status
+
+          res.write({ message: 'Payment status updated', transaction_id: id, status: status }.to_json)
+        else
+          res.status = 404
+          res.write({ error: 'Payment not found' }.to_json)
+        end
       end
     end
   end

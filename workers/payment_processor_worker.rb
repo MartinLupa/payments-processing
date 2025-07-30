@@ -15,13 +15,13 @@ class PaymentProcessorWorker
   sidekiq_options queue: 'payments', retry: 3
 
   def perform(payment_id, card_token)
-    logger = Logger.new(STDOUT)
+    logger = Logger.new($stdout)
     payment = Payment.first(id: payment_id)
 
     logger.info("Processing payment ##{payment_id}")
 
     # Simulate payment gateway call
-    response = { success: false } # Simulate a successful response from the payment gateway
+    response = { success: true } # Simulate a successful response from the payment gateway
 
     DB.transaction do
       if response[:success]
