@@ -41,7 +41,7 @@ Cuba.define do
         }
       end
 
-      res.json({ message: payments.empty? ? 'No payments found' : payments })
+      res.json({ data: payments.empty? ? 'No payments found' : payments, error: nil })
     end
 
     on post do
@@ -60,7 +60,8 @@ Cuba.define do
       PaymentProcessorWorker.perform_async(payment.id, card_token)
 
       res.status = 202
-      res.write({ message: 'Payment initiated', transaction_id: transaction_id, status: 'pending' }.to_json)
+      res.write({ data: { message: 'Payment initiated', transaction_id: transaction_id, status: 'pending' },
+                  error: nil }.to_json)
     end
 
     on ':id' do |id|
@@ -78,7 +79,7 @@ Cuba.define do
         payment = Payment.where(transaction_id: id).first
         unless payment
           res.status = 404
-          res.json({ error: 'Payment not found' }.to_json)
+          res.json({ data: nil, error: 'Payment not found' }.to_json)
           next
         end
 
@@ -87,23 +88,23 @@ Cuba.define do
         redis.setex("payment:#{id}", 3600, response)
         res.headers['etag'] = Digest::SHA1.hexdigest(response)
         # res.headers['cache-control'] = 'max-age=3600'
-        res.json(response)
+        res.json({ data: response, error: nil })
       end
 
       on patch do
         params = JSON.parse(req.body.read)
         status = params['status']
-        puts "Updating payment status for #{id} to #{status}"
 
         payment = Payment.where(transaction_id: id).first
         if payment
           updated_payment = payment.update(status: status)
           redis.setex("payment:#{id}", 3600, updated_payment.to_json) # Cache the updated payment status
 
-          res.write({ message: 'Payment status updated', transaction_id: id, status: status }.to_json)
+          res.write({ data: { message: 'Payment status updated', transaction_id: id, status: status },
+                      error: nil }.to_json)
         else
           res.status = 404
-          res.write({ error: 'Payment not found' }.to_json)
+          res.write({ data: nil, error: 'Payment not found' }.to_json)
         end
       end
     end
