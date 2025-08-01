@@ -1,18 +1,18 @@
 # Define rate limiting zone (shared across locations)
-limit_req_zone global zone=perip:10m rate=10r/s;
+limit_req_zone global zone=perip:10m rate=${RATE_LIMIT_REQUESTS_PER_SECOND}r/s;
 
 # Upstream definitions
 upstream payments_processing {
-    server host.docker.internal:9292;
-    server host.docker.internal:9293;
+    server host.docker.internal:${PORT1};
+    server host.docker.internal:${PORT2};
     # Add more servers here for load balancing if needed
 }
 
 # TODO: add SSL configuration for production (https://github.dev/jay-nginx/api-gateway/blob/main/conf.d/api_gateway.conf)
 
 server {
-    listen       80;
-    listen  [::]:80;
+    listen       ${API_GATEWAY_PORT};
+    listen  [::]:${API_GATEWAY_PORT};
     server_name  localhost;
 
     # Set authentication directives

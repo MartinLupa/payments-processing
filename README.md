@@ -91,3 +91,14 @@ curl http://localhost/api/v1/payments/{transaction_id}
 - **Basic auth credentials** implement proper credentials handling
 - **No input validation** on payment amounts or card tokens
 
+## Learnings from this project
+- `Ruby ecosystem`: Puma, Cuba, Rack, Gemfiles, etc.
+- `Background job processing`: Sidekiq workers.
+- `Docker bind mounts vs copying config files into Dockerfile` (trying to come up with the best developer experience): when doing changes on the nginx config files on my host machine, I had to manually recreate the image for the container to have the new changes, as my Dockerfile directly copies these into the container before building the image. This workflow is slow for development, so bind mounts might be a better approach, but they are not recommended for production setups.
+- `Caching`: refreshing concepts with Redis.
+- `Linux environments`: refreshing the importance of file permissions when for example executing generate-htpasswd.sh. Docker container logs would inform of: `/docker-entrypoint.sh: Ignoring /docker-entrypoint.d/10-generate-htpasswd.sh, not executable`. The file had to be modified through `chmod`to enable execution in the context of Linux.
+- `bash not installed in Docker environment`: trying to execute a file with a SheBang of `#!/bin/bash`wouldn't execute. `#!/bin/ash` (ash, not bash) does.
+- `Using Nginx templating`: copy .conf.template files in `etc/nginx/templates`. On startup, the nginx entrypoint script scans this directory for files with *.template suffix by default, and it runs envsubst. The envsubst parse the template using the shell interpolation and replaces shell variables with values from environment variables. It outputs to a file in /etc/nginx/conf.d/.
+If you’re using $var, and there’s no such env-var, it will stay as is in the output file. In the above file, $host and $remote_addr are such examples. We want them to stay as parameters in the output file, as they are parameters used by nginx.
+Source: https://devopsian.net/p/nginx-config-template-with-environment-vars/
+
