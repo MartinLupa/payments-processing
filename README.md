@@ -101,4 +101,3 @@ curl http://localhost/api/v1/payments/{transaction_id}
 - `Using Nginx templating`: copy .conf.template files in `etc/nginx/templates`. On startup, the nginx entrypoint script scans this directory for files with *.template suffix by default, and it runs envsubst. The envsubst parse the template using the shell interpolation and replaces shell variables with values from environment variables. It outputs to a file in /etc/nginx/conf.d/.
 If you’re using $var, and there’s no such env-var, it will stay as is in the output file. In the above file, $host and $remote_addr are such examples. We want them to stay as parameters in the output file, as they are parameters used by nginx.
 Source: https://devopsian.net/p/nginx-config-template-with-environment-vars/
-
