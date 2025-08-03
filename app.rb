@@ -6,6 +6,8 @@ require 'sidekiq/web'
 require './config/database'
 require './models/payment'
 require './workers/payment_processor_worker'
+require 'opentelemetry/sdk'
+require 'opentelemetry/instrumentation/all'
 
 ##
 # Uncomment the following lines to enable basic authentication
@@ -16,6 +18,17 @@ require './workers/payment_processor_worker'
 #   username == 'allowed-user' &&
 #     password == 'secret' # Replace with JWT or API key in production
 # end
+#
+
+OpenTelemetry::SDK.configure do |c|
+  c.service_name = 'payments-processing'
+  # c.add_span_processor(
+  #   OpenTelemetry::SDK::Trace::Export::BatchSpanProcessor.new(
+  #     OpenTelemetry::Exporter::OTLP::Exporter.new(endpoint: 'http://localhost:4317')
+  #   )
+  # )
+  c.use_all # enables all instrumentation!
+end
 
 Cuba.define do
   redis = Redis.new

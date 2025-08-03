@@ -7,6 +7,9 @@ source 'https://rubygems.org'
 gem 'cuba' # Lightweight web framework
 gem 'dotenv' # For managing environment variables
 gem 'faraday'           # HTTP client for mock gateway
+gem 'opentelemetry-exporter-otlp'
+gem 'opentelemetry-instrumentation-all'
+gem 'opentelemetry-sdk'
 gem 'pg'                # PostgreSQL driver
 gem 'prometheus-client' # Metrics for monitoring
 gem 'puma' # Web server for production
