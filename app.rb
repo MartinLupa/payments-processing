@@ -4,6 +4,7 @@ require 'redis'
 require 'sidekiq/web'
 require './config/database'
 require './config/opentelemetry'
+require './middlewares/error_handler'
 require './models/payment'
 require './schemas/payment'
 require './workers/payment_processor_worker'
@@ -17,6 +18,8 @@ require './workers/payment_processor_worker'
 #   username == 'user' &&
 #     password == 'password' # Replace with JWT or API key in production
 # end
+
+Cuba.use ErrorHandler
 
 Cuba.define do
   redis = Redis.new
