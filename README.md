@@ -75,18 +75,21 @@ A lightweight payments processing microservice built with Ruby/Cuba, featuring a
 
 ## Example Usage
 > [!NOTE]  
-> If targetting the API Gateway port, append `/api/v1` to all endpoints after the port.
+> If targetting the API Gateway port, append `/api/v1` to all endpoints after the port.\
+>
+> **App endpoint**: `http://localhost:<PORT1 | PORT2>/payments`\
+> **API Gateway endpoint**: `http://localhost:<API_GATEWAY_PORT>/api/v1/payments`
 
+### Create a payment
 ```bash
-# Create a payment
-curl -X POST http://localhost:<port>/api/v1/payments \
+curl -X POST http://localhost:<port>/payments \
   -H "Content-Type: application/json" \
   -d '{"order_id": "ORD-123", "amount": 99.99, "card_token": "tok_123"}'
 ```
 
 ### Check payment status
 ```bash
-curl http://localhost<port>/api/v1/payments/{transaction_id}
+curl http://localhost<port>/payments/{transaction_id}
 ```
 
 ## Learnings from this project
