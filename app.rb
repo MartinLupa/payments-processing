@@ -5,6 +5,7 @@ require 'sidekiq/web'
 require './config/database'
 require './config/opentelemetry'
 require './models/payment'
+require './schemas/payment'
 require './workers/payment_processor_worker'
 
 ##
@@ -16,9 +17,6 @@ require './workers/payment_processor_worker'
 #   username == 'user' &&
 #     password == 'password' # Replace with JWT or API key in production
 # end
-
-Cuba.use Rack::Session::Cookie, secret: SecureRandom.hex(64)
-Cuba.plugin Cuba::Safe::SecureHeaders
 
 Cuba.define do
   redis = Redis.new
@@ -41,10 +39,21 @@ Cuba.define do
     end
 
     on post do
-      params = JSON.parse(req.body.read)
-      order_id = params['order_id']
-      amount = params['amount']
-      card_token = params['card_token']
+      payload = JSON.parse(req.body.read)
+
+      # Validate payload
+      begin
+        JSON::Validator.validate!(Schemas::PAYMENT_CREATE, payload)
+      rescue JSON::Schema::ValidationError => e
+        res.status = 400
+        res.json({ data: nil, error: e.message })
+        next
+      end
+
+      # Extract parameters
+      order_id = payload['order_id']
+      amount = payload['amount']
+      card_token = payload['card_token']
 
       # Generate unique transaction ID
       transaction_id = SecureRandom.uuid
@@ -56,8 +65,8 @@ Cuba.define do
       PaymentProcessorWorker.perform_async(payment.id, card_token)
 
       res.status = 202
-      res.write({ data: { message: 'Payment initiated', transaction_id: transaction_id, status: 'pending' },
-                  error: nil }.to_json)
+      res.json({ data: { message: 'Payment initiated', transaction_id: transaction_id, status: 'pending' },
+                 error: nil })
     end
 
     on ':id' do |id|
