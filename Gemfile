@@ -18,6 +18,7 @@ gem 'rack'
 gem 'rack-test' # For testing Cuba APIs
 gem 'rackup' # Rack server for Cuba
 gem 'redis' # Redis client
+gem 'retriable'
 gem 'rspec' # Testing framework
 gem 'securerandom' # For generating UUIDs
 gem 'sequel' # ORM for database

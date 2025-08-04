@@ -1,11 +1,10 @@
 require 'sequel'
-require 'dotenv/load' if defined?(Dotenv)
+require 'retriable'
 
 database_url = ENV['DATABASE_URL']
-
 raise '[Missing environment variable] DATABASE_URL' if database_url.nil? || database_url.empty?
 
-begin
+Retriable.retriable(on: Sequel::DatabaseConnectionError, tries: 1, intervals: 1) do
   DB = Sequel.connect(database_url)
 
   DB.test_connection
