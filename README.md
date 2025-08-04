@@ -2,7 +2,7 @@
 
 A lightweight payments processing microservice built with Ruby/Cuba, featuring asynchronous payment processing, caching, and API gateway functionality.
 
-## Architecture
+## App Architecture
 
 ```
 ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
@@ -15,6 +15,16 @@ A lightweight payments processing microservice built with Ruby/Cuba, featuring a
                    │   Sidekiq   │───▶│    Redis    │
                    │   Worker    │    │   Cache     │
                    └─────────────┘    └─────────────┘
+```
+
+## Telemetry Architecture
+```
+┌─────────────────────┐    ┌───────────────────┐    ┌───────────────────┐
+│     Ruby App        │───▶│   OTLP Collector  │───▶│  Visualization UI │
+│ (with OTLP Exporter)│    │ (e.g., Jaeger,    │    │ (e.g., Jaeger UI, │
+└─────────────────────┘    │   Zipkin, or      │    │   Grafana Tempo)  │
+                           │   OpenTelemetry)  │    └───────────────────┘
+                           └───────────────────┘
 ```
 
 ### Components

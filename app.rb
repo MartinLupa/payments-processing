@@ -4,10 +4,9 @@ require 'securerandom'
 require 'redis'
 require 'sidekiq/web'
 require './config/database'
+require './config/opentelemetry'
 require './models/payment'
 require './workers/payment_processor_worker'
-require 'opentelemetry/sdk'
-require 'opentelemetry/instrumentation/all'
 
 ##
 # Uncomment the following lines to enable basic authentication
@@ -15,20 +14,9 @@ require 'opentelemetry/instrumentation/all'
 # Replace with JWT or API key in production
 #
 # Cuba.use Rack::Auth::Basic do |username, password|
-#   username == 'allowed-user' &&
-#     password == 'secret' # Replace with JWT or API key in production
+#   username == 'user' &&
+#     password == 'password' # Replace with JWT or API key in production
 # end
-#
-
-OpenTelemetry::SDK.configure do |c|
-  c.service_name = 'payments-processing'
-  # c.add_span_processor(
-  #   OpenTelemetry::SDK::Trace::Export::BatchSpanProcessor.new(
-  #     OpenTelemetry::Exporter::OTLP::Exporter.new(endpoint: 'http://localhost:4317')
-  #   )
-  # )
-  c.use_all # enables all instrumentation!
-end
 
 Cuba.define do
   redis = Redis.new
@@ -100,25 +88,24 @@ Cuba.define do
 
         redis.setex("payment:#{id}", 3600, response)
         res.headers['etag'] = Digest::SHA1.hexdigest(response)
-        # res.headers['cache-control'] = 'max-age=3600'
         res.json({ data: response, error: nil })
       end
+    end
 
-      on patch do
-        params = JSON.parse(req.body.read)
-        status = params['status']
+    on patch do
+      params = JSON.parse(req.body.read)
+      status = params['status']
 
-        payment = Payment.where(transaction_id: id).first
-        if payment
-          updated_payment = payment.update(status: status)
-          redis.setex("payment:#{id}", 3600, updated_payment.to_json) # Cache the updated payment status
+      payment = Payment.where(transaction_id: id).first
+      if payment
+        updated_payment = payment.update(status: status)
+        redis.setex("payment:#{id}", 3600, updated_payment.to_json) # Cache the updated payment status
 
-          res.write({ data: { message: 'Payment status updated', transaction_id: id, status: status },
-                      error: nil }.to_json)
-        else
-          res.status = 404
-          res.write({ data: nil, error: 'Payment not found' }.to_json)
-        end
+        res.write({ data: { message: 'Payment status updated', transaction_id: id, status: status },
+                    error: nil }.to_json)
+      else
+        res.status = 404
+        res.write({ data: nil, error: 'Payment not found' }.to_json)
       end
     end
   end
