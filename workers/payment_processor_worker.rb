@@ -1,6 +1,5 @@
 require 'sidekiq'
 require 'faraday'
-require 'logger'
 require './config/database'
 require './models/payment'
 
@@ -15,10 +14,7 @@ class PaymentProcessorWorker
   sidekiq_options queue: 'payments', retry: 3
 
   def perform(payment_id, card_token)
-    logger = Logger.new($stdout)
     payment = Payment.first(id: payment_id)
-
-    logger.info("Processing payment ##{payment_id}")
 
     # Simulate payment gateway call
     response = { success: true } # Simulate a successful response from the payment gateway
@@ -26,11 +22,9 @@ class PaymentProcessorWorker
     DB.transaction do
       if response[:success]
         payment.update(status: 'completed')
-        logger.info("Payment ##{payment_id} completed successfully")
         # EmailWorker.perform_async(payment.order_id, 'Payment successful')
       else
         payment.update(status: 'failed')
-        logger.error("Payment failed for #{payment_id}")
         # EmailWorker.perform_async(payment.order_id, 'Payment failed')
       end
     end

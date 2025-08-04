@@ -1,6 +1,4 @@
 require 'cuba'
-require 'json'
-require 'securerandom'
 require 'redis'
 require 'sidekiq/web'
 require './config/database'
@@ -20,13 +18,6 @@ require './workers/payment_processor_worker'
 
 Cuba.define do
   redis = Redis.new
-
-  on 'health' do
-    on get do
-      res.headers['content-type'] = 'application/json'
-      res.write({ status: 'ok', timestamp: Time.now.utc }.to_json)
-    end
-  end
 
   on 'payments' do
     on root, get do
