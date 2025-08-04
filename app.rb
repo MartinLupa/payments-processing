@@ -1,4 +1,5 @@
 require 'cuba'
+require 'cuba/safe'
 require 'redis'
 require 'sidekiq/web'
 require './config/database'
@@ -15,6 +16,9 @@ require './workers/payment_processor_worker'
 #   username == 'user' &&
 #     password == 'password' # Replace with JWT or API key in production
 # end
+
+Cuba.use Rack::Session::Cookie, secret: SecureRandom.hex(64)
+Cuba.plugin Cuba::Safe::SecureHeaders
 
 Cuba.define do
   redis = Redis.new
